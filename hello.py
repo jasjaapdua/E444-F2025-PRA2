@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, session, flash
 from flask_bootstrap import Bootstrap
 from flask_moment import Moment
 from datetime import datetime, timezone
@@ -20,7 +20,7 @@ def validate_utoronto_email(form, field):
 
 class NameForm(FlaskForm):
     name = StringField(
-        'What is your name?', 
+        label='What is your name?', 
         validators=[DataRequired()]
     )
     email = EmailField(
@@ -40,6 +40,17 @@ def index():
     if form.validate_on_submit():
         name = form.name.data
         email = form.email.data
+        
+        original_name = session.get("name")
+        original_email = session.get("email")
+        
+        if name and original_name and name != original_name:
+            flash(f"You have changed your name.")
+        if email and original_email and email != original_email:
+            flash(f"You have changed your email.")
+        
+        session["name"] = name
+        session["email"] = email
         form.name.data = ''
         form.email.data = ''
     return render_template('index.html', form=form, name=name, email=email)
